@@ -1,6 +1,6 @@
 {
   "name": "vue-cli-plugin-meicai",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "开发辅助工具",
   "main": "index.js",
   "scripts": {
