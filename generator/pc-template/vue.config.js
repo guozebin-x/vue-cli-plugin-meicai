@@ -1,6 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
-const packageConfig = require('./package.json.js')
+const packageConfig = require('./package.json')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
 const resolve = function (dir) {

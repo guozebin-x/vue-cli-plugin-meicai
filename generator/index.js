@@ -221,6 +221,12 @@ module.exports = async (api, options, rootOptions) => {
       if (elementImportIndex < 0 && options.project == 'PC') {
         src.splice(++vueImportIndex, 0, "import './plugins/element'");
       }
+      if (options.waterMark) {
+        src.splice(++vueImportIndex, 0, "import Watermark from '@/water-mark'");
+      }
+      if (options.site) {
+        src.splice(++vueImportIndex, 0, "import siteOptions from '@/track'");
+      }
 
       if (fastImportIndex < 0 && options.project == 'Mobile') {
         src.splice(++vueImportIndex, 0, "import fastClick from 'fastclick'");
@@ -233,15 +239,76 @@ import 'vant/lib/index.css';`);
         src.splice(++newImportIndex, 0, "fastClick.attach(document.body)");
         src.splice(++newImportIndex, 0, "Vue.use(Vant);");
       }
-      src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
+      if (options.site && options.waterMark) {
+        src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
   if (store.getters.userInfo.id) {
     next()
   } else {
     store.dispatch('getInfo').then(res => {
+      Watermark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
+      siteOptions['baseParam'].uid = store.getters.userInfo.uid
+
+      if (siteOptions['isTrackUser']) {
+        let tickerSDK = 'https://img-oss.yunshanmeicai.com/fe_cdn/tracer/tracer.web.1.1.0.js'
+        let script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = tickerSDK;
+        script.onload = function () {
+          mcTracer.init(siteOptions['trackerOptions'], siteOptions['baseParam'])
+          mcTracer.page('/', {});
+        }
+        document.head.appendChild(script);
+      }
       next()
     })
   }
 })`)
+      } else if (options.site && !options.waterMark) {
+        src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
+          if (store.getters.userInfo.id) {
+            next()
+          } else {
+            store.dispatch('getInfo').then(res => {
+              siteOptions['baseParam'].uid = store.getters.userInfo.uid
+        
+              if (siteOptions['isTrackUser']) {
+                let tickerSDK = 'https://img-oss.yunshanmeicai.com/fe_cdn/tracer/tracer.web.1.1.0.js'
+                let script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = tickerSDK;
+                script.onload = function () {
+                  mcTracer.init(siteOptions['trackerOptions'], siteOptions['baseParam'])
+                  mcTracer.page('/', {});
+                }
+                document.head.appendChild(script);
+              }
+              next()
+            })
+          }
+        })`)
+      } else if (!options.site && options.waterMark) {
+        src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
+          if (store.getters.userInfo.id) {
+            next()
+          } else {
+            store.dispatch('getInfo').then(res => {
+              Watermark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
+              next()
+            })
+          }
+        })`)
+      } else {
+        src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
+          if (store.getters.userInfo.id) {
+            next()
+          } else {
+            store.dispatch('getInfo').then(res => {
+              next()
+            })
+          }
+        })`)
+      }
+
 
       return src;
     });
