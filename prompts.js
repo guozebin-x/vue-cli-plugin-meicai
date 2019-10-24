@@ -22,6 +22,6 @@ module.exports = [
   {
     type: 'number',
     name: 'apiId',
-    message: '请输入mock文档的id'
+    message: '如需将接口注入vue实例,请输入mock文档的id,在全局通过api调用'
   }
 ]

@@ -10,7 +10,7 @@ export default {
   actions: {
     getInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        _api.home.getUserInfo().then(res => {
+        api.home.getUserInfo().then(res => {
           if (res.data) {
             commit('SET_USERINFO', res.data)
             resolve(res)

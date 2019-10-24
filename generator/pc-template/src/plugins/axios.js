@@ -4,6 +4,7 @@ import Vue from 'vue'
 import axios from 'axios'
 import { Message, Loading } from 'element-ui'
 import router from '../router'
+import pathConfig from '@/config/requirePath'
 
 // Full config:  https://github.com/axios/axios#request-config
 // axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
@@ -21,9 +22,9 @@ const _axios = axios.create(config)
 
 _axios.interceptors.request.use(
   config => {
-    loading = Loading.service({
-      text: '正在加载中......'
-    })
+    // loading = Loading.service({
+    //   text: '正在加载中......'
+    // })
     const token = localStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = token
@@ -48,13 +49,13 @@ _axios.interceptors.response.use(
     if (ret === 1) {
       return Promise.resolve(response.data)
     } else {
-      if(response.data.msg){
+      if (response.data.msg == "cookie中没有user_token" || response.data.msg == "没有登录") {
+        window.location.href = pathConfig.loginPath;
+      } else {
         Message.error(response.data.msg)
-      }else{
-        Message.error("请求出错")
       }
 
-      return Promise.reject(response.data.msg)
+      return Promise.reject(response.data)
     }
   },
   error => {
@@ -128,12 +129,12 @@ Plugin.install = function (Vue, options) {
   window.axios = _axios
   Object.defineProperties(Vue.prototype, {
     axios: {
-      get () {
+      get() {
         return _axios
       }
     },
     $axios: {
-      get () {
+      get() {
         return _axios
       }
     }

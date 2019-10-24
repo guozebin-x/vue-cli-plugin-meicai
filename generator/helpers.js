@@ -2,7 +2,7 @@ const fs = require('fs')
 
 module.exports = function (api) {
   return {
-    updateBabelConfig (callback) {
+    updateBabelConfig(callback) {
       let config, configPath
 
       const rcPath = api.resolve('./babel.config.js')
@@ -34,7 +34,7 @@ module.exports = function (api) {
       }
     },
 
-    updateMain (callback) {
+    updateMain(callback) {
       const tsPath = api.resolve('./src/main.ts')
       const jsPath = api.resolve('./src/main.js')
 
@@ -47,6 +47,15 @@ module.exports = function (api) {
 
       content = lines.join('\n')
       fs.writeFileSync(mainPath, content, { encoding: 'utf8' })
+    },
+
+    updateVueConfig(callback) {
+      const VueConfigPath = api.resolve('vue.config.js')
+      let content = fs.readFileSync(VueConfigPath, { encoding: 'utf8' })
+
+      content = callback(content)
+
+      fs.writeFileSync(VueConfigPath, content, { encoding: 'utf8' })
     }
   }
 }

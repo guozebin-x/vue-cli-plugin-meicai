@@ -13,7 +13,7 @@ const resolve = function (dir) {
  * 若指定了 devHost，如：const devHost = 'rad.dev.yunshanmeicai.com',
  * 则需要配置操作系统 host，如：127.0.0.1 rad.dev.yunshanmeicai.com
  */
-const devHost = ''
+const devHost = 'localhost.yunshanmeicai.com'
 
 function onProxyReq(proxyReq, req, res) {
   console.log(proxyReq.path)
@@ -39,10 +39,10 @@ function onProxyReq(proxyReq, req, res) {
  *
  * dev proxy 配置参考: https://cli.vuejs.org/zh/config/#devserver-proxy
  */
-let isUseDevServerProxy = false
-let isUseRapMockerTarget = false
-let apiProxyTarget = ''
-let apiProxyMatches = ['/api']
+let isUseDevServerProxy = true
+let isUseRapMockerTarget = true
+let apiProxyTarget = 'http://mockapi.yunshanmeicai.com/api/app/mock/39'
+let apiProxyMatches = ['/']
 
 /**
  * 配置编译后文件的存储位置。
@@ -94,12 +94,9 @@ let options = {
     host: 'localhost.yunshanmeicai.com',
     disableHostCheck: true,
     proxy: {
-      '/api': {
-        target: `http://portal.test.yunshanmeicai.com/`,
-        logLevel: 'debug',
-        pathRewrite: {
-          '^/api': '/'
-        }
+      '/': {
+        target: `http://mockapi.yunshanmeicai.com/api/app/mock/39`,
+        logLevel: 'debug'
       }
     }
   }
