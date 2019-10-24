@@ -2,9 +2,9 @@
 
 import Vue from 'vue'
 import axios from 'axios'
-import { Message, Loading } from 'element-ui'
 import router from '../router'
-
+import { Toast } from 'vant';
+import pathConfig from '@/config/requirePath'
 // Full config:  https://github.com/axios/axios#request-config
 // axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
 // axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
@@ -21,9 +21,7 @@ const _axios = axios.create(config)
 
 _axios.interceptors.request.use(
   config => {
-    loading = Loading.service({
-      text: '正在加载中......'
-    })
+
     const token = localStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = token
@@ -43,15 +41,15 @@ _axios.interceptors.response.use(
     if (loading) {
       loading.close()
     }
-    const ret = response.data.ret
+    const code = response.data.code
 
-    if (ret === 1) {
+    if (response.data.ret == 1 || code == 200) {
       return Promise.resolve(response.data)
     } else {
-      if(response.data.msg){
-        Message.error(response.data.msg)
-      }else{
-        Message.error("请求出错")
+      if (response.data.msg == "用户登录失效" || response.data.msg == "没有登录") {
+        window.location.href = pathConfig.loginPath;
+      } else {
+        Toast.fail(response.data.msg)
       }
 
       return Promise.reject(response.data.msg)
@@ -66,10 +64,10 @@ _axios.interceptors.response.use(
     if (!error.response) {
       // 请求超时状态
       if (error.message.includes('timeout')) {
-        Message.error('请求超时，请检查网络是否连接正常')
+        Toast.fail('请求超时，请检查网络是否连接正常')
       } else {
         // 可以展示断网组件
-        Message.error('请求失败，请检查网络是否已连接')
+        Toast.fail('请求失败，请检查网络是否已连接')
       }
       return
     }
@@ -106,18 +104,18 @@ _axios.interceptors.response.use(
       //   }, 1000)
       //   break
       // 404请求不存在
-      case 404:
-        Message({
-          message: '网络请求不存在',
-          type: 'error'
-        })
-        break
-      // 其他错误，直接抛出错误提示
-      default:
-        Message({
-          message: error.response.data.message,
-          type: 'error'
-        })
+      // case 404:
+      //   Message({
+      //     message: '网络请求不存在',
+      //     type: 'error'
+      //   })
+      //   break
+      // // 其他错误，直接抛出错误提示
+      // default:
+      //   Message({
+      //     message: error.response.data.message,
+      //     type: 'error'
+      //   })
     }
     return Promise.reject(error)
   }
@@ -128,12 +126,12 @@ Plugin.install = function (Vue, options) {
   window.axios = _axios
   Object.defineProperties(Vue.prototype, {
     axios: {
-      get () {
+      get() {
         return _axios
       }
     },
     $axios: {
-      get () {
+      get() {
         return _axios
       }
     }

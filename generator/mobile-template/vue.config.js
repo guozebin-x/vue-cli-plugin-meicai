@@ -1,6 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
-const packageConfig = require('./package.json')
+const packageConfig = require('./package.json.js')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
 const resolve = function (dir) {
@@ -98,7 +98,7 @@ let options = {
     disableHostCheck: true,
     proxy: {
       '/api': {
-        target: `http://portal.test.yunshanmeicai.com/`,
+        target: `http://???.test.yunshanmeicai.com/`,
         logLevel: 'debug',
         pathRewrite: {
           '^/api': '/'
@@ -122,8 +122,8 @@ if (isUseDevServerProxy) {
       }
     }
     if (isUseRapMockerTarget) {
-      devProxyOptions[api]['pathRewrite'] = (path, req) => 
-      '/' + req.method + '/' + path
+      devProxyOptions[api]['pathRewrite'] = (path, req) =>
+        '/' + req.method + '/' + path
     }
   })
   options['devServer'] = options['devServer'] || {}

@@ -11,6 +11,11 @@ module.exports = [
   },
   {
     type: 'confirm',
+    name: 'waterMark',
+    message: '是否添加水印'
+  },
+  {
+    type: 'confirm',
     name: 'site',
     message: '是否埋点'
   },

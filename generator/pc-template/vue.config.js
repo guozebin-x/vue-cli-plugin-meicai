@@ -1,6 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
-const packageConfig = require('./package.json')
+const packageConfig = require('./package.json.js')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
 const resolve = function (dir) {
@@ -89,9 +89,6 @@ let options = {
       })
     ]
   },
-  chainWebpack: config => {
-    config.resolve.alias.set('framework', resolve('./framework'))
-  },
   devServer: {
     open: true, // 启动后打开浏览器。
     host: 'localhost.yunshanmeicai.com',
@@ -122,8 +119,8 @@ if (isUseDevServerProxy) {
       }
     }
     if (isUseRapMockerTarget) {
-      devProxyOptions[api]['pathRewrite'] = (path, req) => 
-      '/' + req.method + '/' + path
+      devProxyOptions[api]['pathRewrite'] = (path, req) =>
+        '/' + req.method + '/' + path
     }
   })
   options['devServer'] = options['devServer'] || {}

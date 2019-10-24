@@ -59,7 +59,7 @@ async function create(inputId) {
   try {
     interfacesList = data.data.modules
   } catch{
-    console.log('id有误,请退出重新输入')
+    console.log('id有误,跳过api创建')
     return
   }
   interfacesList.forEach(i => {
@@ -148,8 +148,14 @@ function mkdirs(directory, callback) {
   }
 }
 module.exports = async (api, options, rootOptions) => {
+  if (options.site) {
+    await api.render('./track')
+  }
+  if (options.waterMark) {
+    await api.render('./water-mark')
+  }
   if (options.project == 'PC') {
-    await api.render('./pc-x-template')
+    await api.render('./pc-template')
     api.extendPackage({
       devDependencies: {
         'chalk': "^2.4.2"
@@ -166,7 +172,7 @@ module.exports = async (api, options, rootOptions) => {
       }
     });
   } else {
-    await api.render('./mobile-x-template')
+    await api.render('./mobile-template')
     api.extendPackage({
       devDependencies: {
         'chalk': "^2.4.2",
@@ -180,7 +186,8 @@ module.exports = async (api, options, rootOptions) => {
         "postcss-aspect-ratio-mini": "^1.0.1",
         "postcss-cssnext": "^3.1.0",
         "postcss-px-to-viewport": "^1.1.0",
-
+        "vuex": "^3.0.1",
+        'axios': "^0.18.0",
         "postcss-write-svg": "^3.0.1"
       },
       scripts: {
@@ -190,12 +197,8 @@ module.exports = async (api, options, rootOptions) => {
     })
   }
 
-
-
   create(options.apiId)
-  if (options.site) {
-    await api.render('./site')
-  }
+
   const fs = require("fs");
   const helpers = require('./helpers')(api)
 
@@ -204,28 +207,43 @@ module.exports = async (api, options, rootOptions) => {
     // Modify main.js
     helpers.updateMain(src => {
       let vueImportIndex = src.findIndex(line => line.match(/^import Vue/));
-
+      let newImportIndex = src.findIndex(line => line.match(/^new Vue/));
       let axiosImportIndex = src.findIndex(line => line.match(/\/plugins\/axios/));
+      let apiImportIndex = src.findIndex(line => line.match(/\/plugins\/api/));
+      let elementImportIndex = src.findIndex(line => line.match(/\/plugins\/element/));
+      let fastImportIndex = src.findIndex(line => line.match(/^import fastClick/));
       if (axiosImportIndex < 0) {
         src.splice(++vueImportIndex, 0, "import './plugins/axios'");
-        src.splice(++vueImportIndex, 0, "import './plugins/api'");
-        if (options.project == 'PC') src.splice(++vueImportIndex, 0, "import './plugins/element'");
       }
+      if (apiImportIndex < 0) {
+        src.splice(++vueImportIndex, 0, "import './plugins/api'");
+      }
+      if (elementImportIndex < 0 && options.project == 'PC') {
+        src.splice(++vueImportIndex, 0, "import './plugins/element'");
+      }
+
+      if (fastImportIndex < 0 && options.project == 'Mobile') {
+        src.splice(++vueImportIndex, 0, "import fastClick from 'fastclick'");
+
+      }
+
+      if (options.project == 'Mobile') {
+        src.splice(++vueImportIndex, 0, `import Vant from 'vant';
+import 'vant/lib/index.css';`);
+        src.splice(++newImportIndex, 0, "fastClick.attach(document.body)");
+        src.splice(++newImportIndex, 0, "Vue.use(Vant);");
+      }
+      src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
+  if (store.getters.userInfo.id) {
+    next()
+  } else {
+    store.dispatch('getInfo').then(res => {
+      next()
+    })
+  }
+})`)
+
       return src;
     });
-
-
-    helpers.updateMain(src => {
-      let vueImportIndex = src.findIndex(line => line.match(/^import Vue/));
-
-      let axiosImportIndex = src.findIndex(line => line.match(/\/plugins\/axios/));
-      if (axiosImportIndex < 0) {
-        src.splice(++vueImportIndex, 0, "import './plugins/axios'");
-        src.splice(++vueImportIndex, 0, "import './plugins/api'");
-        if (options.project == 'PC') src.splice(++vueImportIndex, 0, "import './plugins/element'");
-      }
-      return src;
-    });
-    
   });
 };
