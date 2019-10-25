@@ -131,7 +131,7 @@ async function create(inputId) {
   let interfacesList
   try {
     interfacesList = data.data.modules
-  } catch{
+  } catch (error) {
     console.log('id有误,跳过api创建')
     return
   }
