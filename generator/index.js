@@ -66,25 +66,33 @@ module.exports = async (api, options, rootOptions) => {
       let vantImportIndex = src.findIndex(line => line.match(/^import Vant/));
       if (axiosImportIndex < 0) {
         src.splice(++vueImportIndex, 0, "import './plugins/axios'");
+        newImportIndex++
       }
       if (apiImportIndex < 0) {
-        src.splice(++vueImportIndex, 0, "import './plugins/api'");
+        src.splice(++vueImportIndex, 0, "import '@/api'");
+        newImportIndex++
       }
       if (elementImportIndex < 0 && options.project == 'PC') {
         src.splice(++vueImportIndex, 0, "import './plugins/element'");
+        newImportIndex++
         src.splice(++vueImportIndex, 0, "import 'normalize.css'");
+        newImportIndex++
       }
       if (options.waterMark) {
-        src.splice(++vueImportIndex, 0, "import Watermark from '@/water-mark'");
+        src.splice(++vueImportIndex, 0, "import waterMark from '@/utils/water-mark'");
+        newImportIndex++
       }
       if (options.site) {
-        src.splice(++vueImportIndex, 0, "import siteOptions from '@/track'");
+        src.splice(++vueImportIndex, 0, "import tracer from '@/utils/tracer'");
+        newImportIndex++
+        src.splice(++vueImportIndex, 0, "import '@/utils/tracer/directive'");
+        newImportIndex++
       }
-
       if (vantImportIndex < 0 && options.project == 'Mobile') {
         src.splice(++vueImportIndex, 0, `import Vant from 'vant';
 import 'vant/lib/index.css';`);
-        src.splice(++newImportIndex, 0, "Vue.use(Vant);");
+        src.splice(--newImportIndex, 0, "Vue.use(Vant);");
+        newImportIndex++
       }
       if (options.site && options.waterMark) {
 
@@ -93,19 +101,10 @@ import 'vant/lib/index.css';`);
     next()
   } else {
     store.dispatch('getInfo').then(res => {
-      Watermark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
-      siteOptions['baseParam'].uid = store.getters.userInfo.uid
-
-      if (siteOptions['isTrackUser']) {
-        let tickerSDK = 'https://img-oss.yunshanmeicai.com/fe_cdn/tracer/tracer.web.1.1.0.js'
-        let script = document.createElement("script");
-        script.type = "text/javascript";
-        script.src = tickerSDK;
-        script.onload = function () {
-          mcTracer.init(siteOptions['trackerOptions'], siteOptions['baseParam'])
-          mcTracer.page('/', {});
-        }
-        document.head.appendChild(script);
+      waterMark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
+      if (tracer.useTrack) {
+        tracer.baseParam.uid = store.getters.userInfo.uid
+        tracer.create()
       }
       next()
     })
@@ -113,48 +112,39 @@ import 'vant/lib/index.css';`);
 })`)
       } else if (options.site && !options.waterMark) {
         src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
-          if (store.getters.userInfo.id) {
-            next()
-          } else {
-            store.dispatch('getInfo').then(res => {
-              siteOptions['baseParam'].uid = store.getters.userInfo.uid
-        
-              if (siteOptions['isTrackUser']) {
-                let tickerSDK = 'https://img-oss.yunshanmeicai.com/fe_cdn/tracer/tracer.web.1.1.0.js'
-                let script = document.createElement("script");
-                script.type = "text/javascript";
-                script.src = tickerSDK;
-                script.onload = function () {
-                  mcTracer.init(siteOptions['trackerOptions'], siteOptions['baseParam'])
-                  mcTracer.page('/', {});
-                }
-                document.head.appendChild(script);
-              }
-              next()
-            })
-          }
-        })`)
+  if (store.getters.userInfo.id) {
+    next()
+  } else {
+    store.dispatch('getInfo').then(res => {
+      if (tracer.useTrack) {
+        tracer.baseParam.uid = store.getters.userInfo.uid
+        tracer.create()
+      }
+      next()
+    })
+  }
+})`)
       } else if (!options.site && options.waterMark) {
         src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
-          if (store.getters.userInfo.id) {
-            next()
-          } else {
-            store.dispatch('getInfo').then(res => {
-              Watermark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
-              next()
-            })
-          }
-        })`)
+  if (store.getters.userInfo.id) {
+    next()
+  } else {
+    store.dispatch('getInfo').then(res => {
+      waterMark.set(store.getters.userInfo.name + "-" + store.getters.userInfo.uid);
+      next()
+    })
+  }
+})`)
       } else {
         src.splice(++newImportIndex, 0, `router.beforeEach(async (to, from, next) => {
-          if (store.getters.userInfo.id) {
-            next()
-          } else {
-            store.dispatch('getInfo').then(res => {
-              next()
-            })
-          }
-        })`)
+  if (store.getters.userInfo.id) {
+    next()
+  } else {
+    store.dispatch('getInfo').then(res => {
+      next()
+    })
+  }
+})`)
       }
       console.log('已自动代理至mock,请修改src/api文件夹接口名称和src/store/modules/user.js请求路径')
       return src;

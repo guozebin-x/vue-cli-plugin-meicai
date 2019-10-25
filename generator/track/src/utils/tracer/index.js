@@ -1,9 +1,9 @@
-let siteOptions = {
+let tracer = {
   // 是否启用埋点.
-  isTrackUser: true,
+  useTrack: true,
   // 若启用埋点，则需要配置初始化选项.
   trackerOptions: {
-    env: location.href.includes('https://sso.yunshanmeicai.com') ? 'production' : 'stage',
+    env: location.href.includes('https://home.yunshanmeicai.com') ? 'production' : 'stage',
     autoPilot: true,
     routeMap: {
       '#/': {
@@ -16,7 +16,7 @@ let siteOptions = {
       }
     },
     routePathName: window.location.pathname, //pathName前缀
-    routeUrlPrefix: 'https://sso.yunshanmeicai.com'
+    routeUrlPrefix: 'https://home.yunshanmeicai.com'
   },
   baseParam: {
     uid: '',//用户id
@@ -28,6 +28,17 @@ let siteOptions = {
     app_id: 28,
     latitude: '',
     longitude: ''
+  },
+  create: function () {
+    let tickerSDK = 'https://img-oss.yunshanmeicai.com/fe_cdn/tracer/tracer.web.1.1.0.js'
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = tickerSDK;
+    script.onload = function () {
+      mcTracer.init(tracer['trackerOptions'], tracer['baseParam'])
+      mcTracer.page('/', {});
+    }
+    document.head.appendChild(script);
   }
 }
 function randomDeviceId() {
@@ -46,4 +57,4 @@ function randomDeviceId() {
 }
 
 
-export default siteOptions
+export default tracer

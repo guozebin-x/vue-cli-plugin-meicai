@@ -1,5 +1,10 @@
-import Vue from 'vue'
-import modules from '@/api'
+const path = require('path')
+const files = require.context('./modules', false, /\.js$/)
+let modules = {}
+files.keys().forEach(key => {
+  let name = path.basename(key, '.js')
+  modules[name] = files(key).default || files(key)
+})
 
 const serverBasePath = ''
 const API = {
@@ -33,30 +38,12 @@ function load(apiJSON) {
         API.makeApiMethod(apiConfig['post'], allApis, 'post')
       }
     }
+
     _api[group] = allApis
   })
 }
 
 load(modules)
-let plu ={}
 
-plu.install = function (Vue, options) {
-  Vue.api = _api
-  window.api = _api
-  Object.defineProperties(Vue.prototype, {
-    api: {
-      get () {
-        return _api
-      }
-    },
-    $api: {
-      get () {
-        return _api
-      }
-    }
-  })
-}
 
-Vue.use(plu)
-
-export default plu
+export default _api

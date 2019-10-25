@@ -1,10 +1,23 @@
-const modulesFiles = require.context('./modules', false, /\.js$/)
+import _api from './apiCreate'
+import Vue from 'vue'
+let apiCreate = {}
 
-const modules = modulesFiles.keys().reduce((modules, modulePath) => {
-  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
-  const value = modulesFiles(modulePath)
-  modules[moduleName] = value.default
-  return modules
-}, {})
+apiCreate.install = function (Vue, options) {
+  Vue._api = _api
+  window._api = _api
+  Object.defineProperties(Vue.prototype, {
+    api: {
+      get() {
+        return _api
+      }
+    },
+    _api: {
+      get() {
+        return _api
+      }
+    }
+  })
+}
 
-export default modules
+Vue.use(apiCreate)
+export default apiCreate
